@@ -12,20 +12,13 @@ import {
 } from "@material-tailwind/react";
 import DatePicker from "react-datepicker";
 import ReactSelect from "react-select";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import "react-datepicker/dist/react-datepicker.css";
 
 import { useState } from "react";
-
-const getTodayFormattedDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  const formattedDate = `${year}-${month}-${day}`;
-
-  return formattedDate;
-};
+import { LeaseFormFields } from "../types";
+import { cleanupLeaseFormData, generateLeaseAgreement } from "../utils";
 
 const paymentOptions = [
   { value: "Post-dated Cheques", label: "Post-dated Cheques" },
@@ -36,6 +29,65 @@ const paymentOptions = [
 export default function LeaseAgreementForm() {
   const [startdate, setStartDate] = useState<Date>(new Date());
   const [partialRentDate, setPartialRentDate] = useState<Date>(new Date());
+
+  const { register, getValues, control } = useForm<LeaseFormFields>({
+    defaultValues: {
+      landLordName: [
+        {
+          first: "",
+          last: "",
+        },
+      ],
+      tenantName: [
+        {
+          first: "",
+          last: "",
+        },
+      ],
+      unit: "",
+      streetNumber: "",
+      streetName: "",
+      city: "",
+      province: "Ontario",
+      postalCode: "",
+      isCondoUnit: "",
+      parkingSpace: 0,
+      parkingFee: 0,
+      parkingDescription: "",
+      termType: "",
+      baseRent: 0,
+      payee: "",
+      paymentMethod: null,
+      tenantInsuranceRequired: true,
+      rentDeposit: 0,
+      keyDeposit: 0,
+      partialMonthRent: null,
+    },
+  });
+
+  const { fields: landlordFields } = useFieldArray({
+    control, // control props comes from useForm (optional: if you are using FormContext)
+    name: "landLordName", // unique name for your Field Array
+    rules: {
+      required: true,
+    },
+  });
+
+  const { fields: tenantFields } = useFieldArray({
+    control, // control props comes from useForm (optional: if you are using FormContext)
+    name: "tenantName", // unique name for your Field Array
+    rules: {
+      required: true,
+    },
+  });
+
+  const onSubmit = async () => {
+    const data = getValues();
+
+    const dataForPost = cleanupLeaseFormData(data, startdate);
+
+    await generateLeaseAgreement(dataForPost);
+  };
 
   return (
     <Card color="transparent" shadow={false}>
@@ -50,76 +102,105 @@ export default function LeaseAgreementForm() {
         <Typography variant="h5" color="blue-gray">
           Landlord/Tenant Info
         </Typography>
-        <div className="grid grid-cols-2 gap-y-4 gap-x-6 mt-4 mb-4">
-          <Input size="lg" crossOrigin="" label="Landlord First Name" />
-          <Input size="lg" crossOrigin="" label="Landlord Last Name" />
-          <div className="col-span-2 flex justify-end">+ Add new Landlord</div>
+        <div className="w-full">
+          {landlordFields.map((item, index) => {
+            return (
+              <div key={item.id} className="grid grid-cols-2 gap-x-4 ">
+                <Input
+                  size="lg"
+                  crossOrigin=""
+                  label="Landlord First Name"
+                  {...register(`landLordName.${index}.first`)}
+                />
+                <Input
+                  size="lg"
+                  crossOrigin=""
+                  label="Landlord Last Name"
+                  {...register(`landLordName.${index}.last`)}
+                />
+              </div>
+            );
+          })}
 
-          <Input size="lg" crossOrigin="" label="Tenant First Name" />
-          <Input size="lg" crossOrigin="" label="Tenant Last Name" />
-          <div className="col-span-2 flex justify-end">+ Add new Tenant</div>
+          <div className="col-span-2 flex justify-end mt-2 mb-6">
+            + Add new Landlord
+          </div>
+
+          {tenantFields.map((item, index) => {
+            return (
+              <div key={item.id} className="grid grid-cols-2 gap-x-4 ">
+                <Input
+                  size="lg"
+                  crossOrigin=""
+                  label="Tenant First Name"
+                  {...register(`tenantName.${index}.first`)}
+                />
+                <Input
+                  size="lg"
+                  crossOrigin=""
+                  label="Tenant Last Name"
+                  {...register(`tenantName.${index}.last`)}
+                />
+              </div>
+            );
+          })}
+
+          <div className="col-span-2 flex justify-end mt-2 mb-6">
+            + Add new Tenant
+          </div>
         </div>
-        {/* <div className="mb-1 flex flex-col gap-6">
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Your Name
-          </Typography>
-          <Input
-            size="lg"
-            crossOrigin=""
-            placeholder="name@mail.com"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-            labelProps={{
-              className: "before:content-none after:content-none",
-            }}
-          />
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Your Email
-          </Typography>
-          <Input
-            size="lg"
-            crossOrigin=""
-            placeholder="name@mail.com"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-            labelProps={{
-              className: "before:content-none after:content-none",
-            }}
-          />
-          <Typography variant="h6" color="blue-gray" className="-mb-3">
-            Password
-          </Typography>
-          <Input
-            type="password"
-            size="lg"
-            crossOrigin=""
-            placeholder="********"
-            className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
-            labelProps={{
-              className: "before:content-none after:content-none",
-            }}
-          />
-        </div> */}
         <Typography variant="h5" color="blue-gray">
           Property Info
         </Typography>
         <div className="grid grid-cols-4 gap-6 mt-4">
-          <Input crossOrigin="" label="Unit" />
-          <Input crossOrigin="" label="Street Number" />
+          <Input
+            crossOrigin=""
+            label="Unit"
+            {...register("unit", { required: false })}
+          />
+          <Input
+            crossOrigin=""
+            label="Street Number"
+            {...register("streetNumber", { required: true })}
+          />
           <div className="col-span-2 w-full">
-            <Input crossOrigin="" label="Street Address" />
+            <Input
+              crossOrigin=""
+              label="Street Name"
+              {...register("streetName", { required: true })}
+            />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-6 mt-4">
-          <Input crossOrigin="" label="City" />
-          <Input crossOrigin="" label="Province" />
-          <Input crossOrigin="" label="Postal Code" />
+          <Input
+            crossOrigin=""
+            {...register("city", { required: true })}
+            label="City"
+          />
+          <Input
+            crossOrigin=""
+            {...register("province", { required: true })}
+            label="Province"
+          />
+          <Input
+            crossOrigin=""
+            {...register("postalCode", { required: true })}
+            label="Postal Code"
+          />
         </div>
         <div className="grid grid-cols-4 gap-6 mt-3">
           <div>
-            <Typography variant="small">Condo Unit?</Typography>
-            <Select>
-              <Option>Yes</Option>
-              <Option>No</Option>
-            </Select>
+            <Controller
+              name="isCondoUnit"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <Select label="Condo Unit?" {...field}>
+                  <Option value="yes">Yes</Option>
+                  <Option value="no">No</Option>
+                </Select>
+              )}
+            ></Controller>
           </div>
         </div>
         <Typography variant="h5" color="blue-gray" className="mt-8">
@@ -131,15 +212,20 @@ export default function LeaseAgreementForm() {
             crossOrigin=""
             type="number"
             label="# of Parking spots"
+            {...register("parkingSpace", { required: true })}
           />
           <Input
             min={0}
             crossOrigin=""
             type="number"
             label="Parking Fee/month"
+            {...register("parkingFee", { required: false })}
           />
           <div className="col-span-2">
-            <Textarea label="Parking Description (Optional)" />
+            <Textarea
+              {...register("parkingDescription", { required: false })}
+              label="Parking Description (Optional)"
+            />
           </div>
         </div>
         <Typography variant="h5" color="blue-gray" className="mt-8">
@@ -154,26 +240,67 @@ export default function LeaseAgreementForm() {
             wrapperClassName="w-full"
             customInput={<Input crossOrigin="" label="Lease Start Date" />}
           />
-          <Select label="Lease Terms">
-            <Option>Fixed Term</Option>
-            <Option>Monthly</Option>
-            <Option>Other</Option>
-          </Select>
+          <Controller
+            name="termType"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <Select label="Lease Terms" {...field}>
+                <Option value="fixed">Fixed Term</Option>
+                <Option value="monthly">Monthly</Option>
+                {/* <Option value="other">Other</Option> */}
+              </Select>
+            )}
+          ></Controller>
         </div>
         <div className="grid grid-cols-3 gap-6 mt-4 items-center">
-          <Input min={0} crossOrigin="" type="number" label="Rent" />
-          <Input crossOrigin="" label="Pay to" />
-          <ReactSelect
-            placeholder="Payment Method"
-            options={paymentOptions}
-            closeMenuOnSelect={false}
-            isMulti
+          <Input
+            min={0}
+            crossOrigin=""
+            type="number"
+            label="Rent"
+            {...register("baseRent", { required: true })}
           />
+          <Input
+            crossOrigin=""
+            label="Pay to"
+            {...register("payee", { required: true })}
+          />
+          <Controller
+            name="paymentMethod"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <ReactSelect
+                placeholder="Payment Method"
+                options={paymentOptions as any}
+                closeMenuOnSelect={false}
+                isMulti
+                {...field}
+              />
+            )}
+          ></Controller>
         </div>
         <div className="grid grid-cols-3 gap-6 mt-4 items-center">
-          <Input min={0} crossOrigin="" type="number" label="Rent Deposit" />
-          <Input min={0} crossOrigin="" type="number" label="Key Deposit" />
-          <Checkbox label="Tenant Insurance Required" crossOrigin="" />
+          <Input
+            min={0}
+            crossOrigin=""
+            type="number"
+            label="Rent Deposit"
+            {...register("rentDeposit", { required: false })}
+          />
+          <Input
+            min={0}
+            crossOrigin=""
+            type="number"
+            label="Key Deposit"
+            {...register("keyDeposit", { required: false })}
+          />
+          <Checkbox
+            label="Tenant Insurance Required"
+            {...register("tenantInsuranceRequired", { required: true })}
+            crossOrigin=""
+          />
         </div>
         <Typography variant="h5" color="blue-gray" className="mt-8">
           Partial Months
@@ -193,6 +320,7 @@ export default function LeaseAgreementForm() {
             type="number"
             label="Partial Month Rent"
             className="mt-2"
+            {...register("partialMonthRent", { required: false })}
           />
           <p className="mt-4">on:</p>
           <DatePicker
@@ -232,9 +360,9 @@ export default function LeaseAgreementForm() {
           If you wish to include any additional terms to the lease, please enter
           them below.
         </Typography>
-        <Button className="mt-6" fullWidth>
-          sign up
-        </Button>
+        <div className="mt-12 w-full flex items-center justify-center">
+          <Button onClick={onSubmit}>Generate Lease Agreement</Button>
+        </div>
       </form>
     </Card>
   );
