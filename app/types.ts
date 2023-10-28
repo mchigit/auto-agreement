@@ -86,4 +86,16 @@ export type LeaseFormFields = {
   rentDeposit: number;
   keyDeposit: number;
   partialMonthRent: null | number;
+  landlordEmail: null | string;
+  landlordPhone: null | string;
+  tenantEmail: null | string;
+  tenantPhone: null | string;
+  landLordAddress?: {
+    unit?: string;
+    streetNumber: string;
+    streetName: string;
+    city: string;
+    postalCode: string;
+    province: string;
+  };
 };

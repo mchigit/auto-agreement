@@ -4,9 +4,9 @@ import React from "react";
 import {
   Navbar,
   Typography,
-  Button,
-  IconButton,
-  Collapse,
+  // Button,
+  // IconButton,
+  // Collapse,
 } from "@material-tailwind/react";
  
 export function StickyNavbar() {
@@ -74,7 +74,7 @@ export function StickyNavbar() {
           >
             Rental Lease Agreements
           </Typography>
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div className="mr-4 hidden lg:block">{navList}</div>
             <div className="flex items-center gap-x-1">
               <Button
@@ -129,9 +129,9 @@ export function StickyNavbar() {
                 </svg>
               )}
             </IconButton>
-          </div>
+          </div> */}
         </div>
-        <Collapse open={openNav}>
+        {/* <Collapse open={openNav}>
           {navList}
           <div className="flex items-center gap-x-1">
             <Button fullWidth variant="text" size="sm" className="">
@@ -141,7 +141,7 @@ export function StickyNavbar() {
               <span>Sign in</span>
             </Button>
           </div>
-        </Collapse>
+        </Collapse> */}
       </Navbar>
   );
 }
