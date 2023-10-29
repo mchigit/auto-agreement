@@ -16,6 +16,7 @@ import {
 import DatePicker from "react-datepicker";
 import ReactSelect from "react-select";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
+import draftToHtml from "draftjs-to-html";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -23,7 +24,7 @@ import { useState } from "react";
 import { LeaseFormFields } from "../types";
 import { cleanupLeaseFormData, generateLeaseAgreement } from "../utils";
 import RichEditor from "./Editor";
-import { EditorState } from "draft-js";
+import { EditorState, convertToRaw } from "draft-js";
 
 const paymentOptions = [
   { value: "Post-dated Cheques", label: "Post-dated Cheques" },
@@ -32,11 +33,22 @@ const paymentOptions = [
 ];
 
 export default function LeaseAgreementForm() {
-  const [startdate, setStartDate] = useState<Date>(new Date());
-  const [partialRentDate, setPartialRentDate] = useState<Date>(new Date());
-  const [additionalTerms, setAdditionalTerms] = useState(
-    EditorState.createEmpty()
-  );
+  const [datePickerDates, setDatePickerDates] = useState<
+    Record<string, Date | null>
+  >({
+    leaseStart: new Date(),
+    leaseEnd: null,
+    partialRentDue: null,
+    partialMonthFrom: null,
+    partialMonthTo: null,
+  });
+
+  const setDates = (date: Date, key: string) => {
+    setDatePickerDates((prev) => ({
+      ...prev,
+      [key]: date,
+    }));
+  };
 
   const [accordions, setAccordions] = useState<Record<string, boolean>>({
     communication: false,
@@ -91,12 +103,13 @@ export default function LeaseAgreementForm() {
       landlordPhone: null,
       tenantEmail: null,
       tenantPhone: null,
+      additionalTerms: [],
     },
   });
 
   const termTypeValue = watch("termType");
 
-  const { fields: landlordFields } = useFieldArray({
+  const { fields: landlordFields, append: appendLandlord } = useFieldArray({
     control, // control props comes from useForm (optional: if you are using FormContext)
     name: "landLordName", // unique name for your Field Array
     rules: {
@@ -104,7 +117,7 @@ export default function LeaseAgreementForm() {
     },
   });
 
-  const { fields: tenantFields } = useFieldArray({
+  const { fields: tenantFields, append: appendTenant } = useFieldArray({
     control, // control props comes from useForm (optional: if you are using FormContext)
     name: "tenantName", // unique name for your Field Array
     rules: {
@@ -112,12 +125,17 @@ export default function LeaseAgreementForm() {
     },
   });
 
+  const { fields: additionalTermFields, append: appendTerm } = useFieldArray({
+    control,
+    name: "additionalTerms",
+  });
+
   const onSubmit = async () => {
     const data = getValues();
 
-    const dataForPost = cleanupLeaseFormData(data, startdate);
+    const dataForPost = cleanupLeaseFormData(data, datePickerDates);
 
-    await generateLeaseAgreement(dataForPost);
+    console.log(dataForPost);
   };
 
   return (
@@ -156,7 +174,9 @@ export default function LeaseAgreementForm() {
               })}
 
               <div className="col-span-2 flex justify-end mt-2 mb-6">
-                + Add new Landlord
+                <Button variant="outlined" size="sm">
+                  + Add new Landlord
+                </Button>
               </div>
 
               {tenantFields.map((item, index) => {
@@ -179,7 +199,9 @@ export default function LeaseAgreementForm() {
               })}
 
               <div className="col-span-2 flex justify-end mt-2 mb-6">
-                + Add new Tenant
+                <Button variant="outlined" size="sm">
+                  + Add new Tenant
+                </Button>
               </div>
             </div>
           </AccordionBody>
@@ -242,7 +264,7 @@ export default function LeaseAgreementForm() {
         </Accordion>
         <Accordion open={accordions.communication} className="mt-6 mb-6">
           <AccordionHeader onClick={() => toggleAccordion("communication")}>
-            Communication (Optional)
+            Contact Info (Optional)
           </AccordionHeader>
           <AccordionBody>
             <div className="grid grid-cols-2 gap-4 mb-8">
@@ -348,9 +370,9 @@ export default function LeaseAgreementForm() {
           <AccordionBody>
             <div className="grid grid-cols-3 gap-6 mt-4 items-center">
               <DatePicker
-                selected={startdate}
+                selected={datePickerDates.leaseStart}
                 onChange={(date) => {
-                  if (date) setStartDate(date);
+                  if (date) setDates(date, "leaseStart");
                 }}
                 wrapperClassName="w-full"
                 customInput={<Input crossOrigin="" label="Lease Start Date" />}
@@ -369,9 +391,9 @@ export default function LeaseAgreementForm() {
               ></Controller>
               {termTypeValue === "fixed" ? (
                 <DatePicker
-                  selected={startdate}
+                  selected={datePickerDates.leaseEnd}
                   onChange={(date) => {
-                    if (date) setStartDate(date);
+                    if (date) setDates(date, "leaseEnd");
                   }}
                   wrapperClassName="w-full"
                   customInput={<Input crossOrigin="" label="Lease End Date" />}
@@ -454,9 +476,9 @@ export default function LeaseAgreementForm() {
               />
               <p className="mt-4">on:</p>
               <DatePicker
-                selected={partialRentDate}
+                selected={datePickerDates.partialRentDue}
                 onChange={(date) => {
-                  if (date) setPartialRentDate(date);
+                  if (date) setDates(date, "partialRentDue");
                 }}
                 wrapperClassName="mt-2"
                 customInput={
@@ -468,17 +490,17 @@ export default function LeaseAgreementForm() {
               </p>
               <div>
                 <DatePicker
-                  selected={partialRentDate}
+                  selected={datePickerDates.partialMonthFrom}
                   onChange={(date) => {
-                    if (date) setPartialRentDate(date);
+                    if (date) setDates(date, "partialMonthFrom");
                   }}
                   wrapperClassName="w-1/3 mt-2 mr-4"
                   customInput={<Input crossOrigin="" label="Covers from" />}
                 />
                 <DatePicker
-                  selected={partialRentDate}
+                  selected={datePickerDates.partialMonthTo}
                   onChange={(date) => {
-                    if (date) setPartialRentDate(date);
+                    if (date) setDates(date, "partialMonthTo");
                   }}
                   wrapperClassName="w-1/3 mt-2"
                   customInput={<Input crossOrigin="" label="Covers to" />}
@@ -495,18 +517,31 @@ export default function LeaseAgreementForm() {
           <AccordionBody>
             <Typography variant="small" color="blue-gray" className="mt-2">
               If you wish to include any additional terms to the lease, please
-              enter them below.
+              add them below.
             </Typography>
             <div className="my-6">
-              <RichEditor
-                setEditorState={setAdditionalTerms}
-                editorState={additionalTerms}
-              />
+              {additionalTermFields.map((item, index) => {
+                return (
+                  <Textarea
+                  className="mt-2"
+                    key={item.id}
+                    {...register(`additionalTerms.${index}.value`)}
+                    label={`Additional Terms ${index + 1}`}
+                  />
+                );
+              })}
+              <div className="flex justify-end mt-4">
+                <Button onClick={() => appendTerm({
+                  value: ""
+                })} variant="outlined" size="sm">
+                  + Add new term
+                </Button>
+              </div>
             </div>
           </AccordionBody>
         </Accordion>
 
-        <div className="mt-12 w-full flex items-center justify-center">
+        <div className="mt-12 w-full flex items-center justify-center ">
           <Button onClick={onSubmit}>Generate Lease Agreement</Button>
         </div>
       </form>

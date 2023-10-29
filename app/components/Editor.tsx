@@ -15,8 +15,8 @@ export default function RichEditor(props: {
   const { editorState, setEditorState } = props;
   return (
     <Editor
-      wrapperClassName="w-full mt-2 border rounded"
-      editorClassName="h-72 p-2"
+      wrapperClassName="w-full h-72 mt-2 overflow-hidden border rounded"
+      editorClassName="p-2"
       toolbarClassName="toolbar-class"
       editorState={editorState}
       onEditorStateChange={setEditorState}

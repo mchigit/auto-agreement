@@ -53,7 +53,7 @@ export type LeaseAgreementDataType = {
   rentDeposit?: string;
   keyDeposit?: string;
   tenantInsuranceNeeded?: boolean;
-  additionalTerms?: boolean;
+  additionalTerms: string[];
 };
 
 export type LeaseFormFields = {
@@ -64,6 +64,9 @@ export type LeaseFormFields = {
   tenantName: {
     first: string;
     last: string;
+  }[];
+  additionalTerms: {
+    value: string;
   }[];
   unit: string;
   streetNumber: string;

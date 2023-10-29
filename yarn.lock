@@ -452,6 +452,13 @@
     "@types/react" "*"
     immutable "~3.7.4"
 
+"@types/draftjs-to-html@^0.8.3":
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/@types/draftjs-to-html/-/draftjs-to-html-0.8.3.tgz#1f0df88c7bbc85797cf83fca93199d94062e6588"
+  integrity sha512-nxVjcXZ+G2HqTb34Bpmx2/Ol9y5VwWeua6s0fg+t6ZoBMKyzZST93SpPZkujAg7sGeLWW0bwqpXF8Fs9ckty8g==
+  dependencies:
+    "@types/draft-js" "*"
+
 "@types/file-saver@^2.0.6":
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/@types/file-saver/-/file-saver-2.0.6.tgz#914688eec1ccce7dd1bf655c0b0a178e89303589"
@@ -1113,6 +1120,11 @@ draft-js@^0.11.7:
     fbjs "^2.0.0"
     immutable "~3.7.4"
     object-assign "^4.1.1"
+
+draftjs-to-html@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/draftjs-to-html/-/draftjs-to-html-0.9.1.tgz#1c870fbb588d2390204cb4d0ee7e04ad0c709969"
+  integrity sha512-fFstE6+IayaVFBEvaFt/wN8vdj8FsTRzij7dy7LI9QIwf5LgfHFi9zSpvCg+feJ2tbYVqHxUkjcibwpsTpgFVQ==
 
 draftjs-utils@^0.10.2:
   version "0.10.2"

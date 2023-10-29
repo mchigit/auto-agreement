@@ -40,7 +40,7 @@ const formatRentMethod = (
 
 export const cleanupLeaseFormData = (
   data: LeaseFormFields,
-  agreementStartDate: Date
+  dates: Record<string, Date | null>
 ): LeaseAgreementDataType => {
   return {
     landlords: data.landLordName.map(
@@ -59,7 +59,7 @@ export const cleanupLeaseFormData = (
     vehicleDescription: data.parkingDescription || undefined,
     isCondo: data.isCondoUnit === "yes",
     // landLordAddress:
-    agreementStart: formatDate(agreementStartDate),
+    agreementStart: formatDate(new Date()),
     termType: formatTermType(data.termType),
     baseRent: data.baseRent.toString(),
     parkingFee: data.parkingFee.toString() || undefined,
@@ -71,6 +71,8 @@ export const cleanupLeaseFormData = (
     rentDeposit: data.rentDeposit?.toString() || undefined,
     keyDeposit: data.keyDeposit?.toString() || undefined,
     tenantInsuranceNeeded: data.tenantInsuranceRequired || false,
+    additionalTerms: data.additionalTerms || [],
+    ...dates,
   };
 };
 

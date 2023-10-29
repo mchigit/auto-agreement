@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Auto Lease Agreement",
+  title: "Agreements Online",
   description: "Auto-generate Ontario Standard Lease Agreement based on the information you provided.",
 };
 
