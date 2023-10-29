@@ -58,9 +58,14 @@ export const cleanupLeaseFormData = (
     parking: data.parkingSpace.toString() || "0",
     vehicleDescription: data.parkingDescription || undefined,
     isCondo: data.isCondoUnit === "yes",
-    // landLordAddress:
-    agreementStart: formatDate(new Date()),
+    landLordAddress: data.landLordAddress || undefined,
+    landlordEmail: data.landlordEmail || undefined,
+    tenantEmail: data.tenantEmail || undefined,
+    landlordPhone: data.landlordPhone || undefined,
+    agreementStart: formatDate(dates.leaseStart as Date),
     termType: formatTermType(data.termType),
+    timeEnding:
+      data.termType === "fixed" ? formatDate(dates.leaseEnd!) : undefined,
     baseRent: data.baseRent.toString(),
     parkingFee: data.parkingFee.toString() || undefined,
     rentPayeeName: data.payee || undefined,
@@ -68,11 +73,19 @@ export const cleanupLeaseFormData = (
       ? formatRentMethod(data.paymentMethod)
       : "Post-dated cheques",
     rentDue: RentDue.First,
+    partialMonth: data.partialMonthRent
+      ? {
+          partialRent: data.partialMonthRent.toString(),
+          partialRentDate: formatDate(dates.partialRentDue!),
+          coveredFrom: formatDate(dates.partialMonthFrom!),
+          coveredTo: formatDate(dates.partialMonthTo!),
+        }
+      : undefined,
     rentDeposit: data.rentDeposit?.toString() || undefined,
     keyDeposit: data.keyDeposit?.toString() || undefined,
     tenantInsuranceNeeded: data.tenantInsuranceRequired || false,
-    additionalTerms: data.additionalTerms || [],
-    ...dates,
+    additionalTerms: data.additionalTerms?.map((x) => x.value) || [],
+    utilityIncluded: true,
   };
 };
 

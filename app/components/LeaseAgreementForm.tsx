@@ -135,6 +135,7 @@ export default function LeaseAgreementForm() {
 
     const dataForPost = cleanupLeaseFormData(data, datePickerDates);
 
+    await generateLeaseAgreement(dataForPost)
     console.log(dataForPost);
   };
 
