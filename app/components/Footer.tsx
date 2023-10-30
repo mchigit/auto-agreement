@@ -21,7 +21,7 @@ export function SimpleFooter() {
     <li>
       <Typography
         as="a"
-        href="#"
+        href="/privacy"
         color="blue-gray"
         className="font-normal transition-colors hover:text-blue-500 focus:text-blue-500"
       >
